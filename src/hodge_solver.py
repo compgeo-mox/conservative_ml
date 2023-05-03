@@ -21,8 +21,7 @@ class HodgeSolver:
         inv_lumped_peak_mass = pg.lumped_peak_mass(self.mdg)
         inv_lumped_peak_mass.data = 1 / inv_lumped_peak_mass.data
         return (
-            lumped_ridge_mass
-            @ self.grad_op
+            (lumped_ridge_mass @ self.grad_op)
             @ inv_lumped_peak_mass
             @ (lumped_ridge_mass @ self.grad_op).T
         )
@@ -48,7 +47,7 @@ class HodgeSolver:
         q = q_f + self.curl_op @ r
 
         face_mass = pg.face_mass(self.mdg, discr=self.discr)
-        p = sps.linalg.spsolve(self.swp.system.T, self.swp.expand.T @ face_mass @ q)
+        p = self.swp.sweep_transpose(face_mass @ q)
 
         return q, p
 

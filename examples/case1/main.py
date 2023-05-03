@@ -16,7 +16,11 @@ def main():
     create_data(mdg)
 
     cell_mass = pg.cell_mass(mdg)
-    f = cell_mass @ np.ones(mdg.num_subdomain_cells())
+
+    def source(x):
+        return 1.0
+
+    f = cell_mass @ pg.PwConstants("flow").interpolate(mdg.subdomains()[0], source)
     g = np.zeros(mdg.num_subdomain_faces())
 
     hs = HodgeSolver(mdg, pg.RT0("flow"))
@@ -24,13 +28,11 @@ def main():
     r = hs.step2(q_f, g)
     q, p = hs.step3(q_f, r)
 
-    print(q_f)
-    # pp.plot_grid(mdg.subdomains()[0], cell_value=p)
-
     face_mass = pg.face_mass(mdg)
     div = pg.cell_mass(mdg) @ pg.div(mdg)
     spp = sps.bmat([[face_mass, -div.T], [div, None]]).tocsc()
     rhs = np.hstack((g, f))
+
     qp_ref = sps.linalg.spsolve(spp, rhs)
     q_ref = qp_ref[: g.size]
     p_ref = qp_ref[g.size :]
@@ -38,7 +40,8 @@ def main():
     err_p = p - p_ref
     err_q = q - q_ref
 
-    print(err_p)
+    print("err_p:", np.sqrt(err_p @ cell_mass @ err_p))
+    print("err_q:", np.sqrt(err_q @ face_mass @ err_q))
 
 
 if __name__ == "__main__":
