@@ -51,7 +51,7 @@ def main_sampler_q(mdg, keyword, num_samples):
 
 
 if __name__ == "__main__":
-    mdg = pg.grid_unitary(2, 0.125)
+    mdg = pg.unit_grid(2, 0.125)
     mdg.compute_geometry()
 
     create_data(mdg)
