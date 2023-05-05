@@ -1,7 +1,5 @@
 import numpy as np
-import scipy.sparse as sps
 
-import porepy as pp
 import pygeon as pg
 
 import sys
@@ -9,7 +7,7 @@ import sys
 sys.path.insert(0, "src/")
 from hodge_solver import HodgeSolver
 from sampler import SamplerR, SamplerQ
-from setup import *
+from setup import create_data
 
 
 def main_sampler_r(mdg, keyword, num_samples):

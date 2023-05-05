@@ -3,16 +3,6 @@ import porepy as pp
 import pygeon as pg
 
 
-def create_mdg(N):
-    dim = 2
-    sd = pp.StructuredTriangleGrid([N] * dim, [1] * dim)
-    mdg = pg.as_mdg(sd)
-    pg.convert_from_pp(mdg)
-    mdg.compute_geometry()
-
-    return mdg
-
-
 def create_data(mdg):
     for sd, data in mdg.subdomains(return_data=True):
         # Set up parameters
