@@ -6,7 +6,7 @@ import sys
 
 sys.path.insert(0, "src/")
 from hodge_solver import HodgeSolver
-from sampler import SamplerR, SamplerQ
+from sampler import SamplerR, SamplerQ, SamplerSB
 from setup import create_data
 
 
@@ -50,6 +50,36 @@ def main_sampler_q(mdg, keyword, num_samples):
     sampler.visualize(mu_samples[0, :], q0_samples[0, :], "sol")
 
 
+def main_sampler_SB(mdg, keyword, num_samples):
+    sampler = SamplerSB(mdg, keyword)
+
+    q0_samples = np.empty(num_samples, dtype=np.ndarray)
+    mu_samples = np.empty((num_samples, 2))
+
+    for idx, (mu, q0) in enumerate(sampler.generate_set(num_samples, seed=1)):
+        mu_samples[idx, :] = mu
+        q0_samples[idx] = q0
+
+    q0_samples = np.vstack(q0_samples)
+
+    np.random.seed(0)
+    r_rand = np.random.rand(mdg.num_subdomain_faces())
+
+    loss = sampler.compute_loss(mu_samples[0, :], q0_samples[0, :], r_rand)
+    print(loss)
+    print(mu_samples)
+
+    import scipy.sparse as sps
+
+    S_0 = sampler.S_0(sps.eye(sampler.B.shape[1]))
+    import matplotlib.pyplot as plt
+
+    plt.spy(S_0)
+    plt.show()
+
+    sampler.visualize(mu_samples[0, :], q0_samples[0, :], "sol")
+
+
 if __name__ == "__main__":
     mdg = pg.unit_grid(2, 0.125)
     mdg.compute_geometry()
@@ -59,4 +89,4 @@ if __name__ == "__main__":
     keyword = "flow"
     num_samples = 4
 
-    main_sampler_q(mdg, keyword, num_samples)
+    main_sampler_SB(mdg, keyword, num_samples)
