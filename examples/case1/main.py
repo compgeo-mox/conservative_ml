@@ -22,13 +22,14 @@ def main_sampler_r(mdg, keyword, num_samples):
 
     r_samples = np.vstack(r_samples)
 
-    r_rand = np.random.rand(r_samples.shape[1])
-    r_rand = r_samples[1, :]
+    return sampler, mu_samples, r_samples
+    #r_rand = np.random.rand(r_samples.shape[1])
+    #r_rand = r_samples[1, :]
 
-    loss = sampler.compute_loss(mu_samples[0, :], r_samples[0, :], r_rand)
-    print(loss)
-    print(mu_samples)
-    sampler.visualize(mu_samples[0, :], r_samples[0, :], "sol")
+    #loss = sampler.compute_loss(mu_samples[0, :], r_samples[0, :], r_rand)
+    #print(loss)
+    #print(mu_samples)
+    #sampler.visualize(mu_samples[0, :], r_samples[0, :], "sol")
 
 
 def main_sampler_q(mdg, keyword, num_samples):
@@ -42,12 +43,12 @@ def main_sampler_q(mdg, keyword, num_samples):
 
     q0_samples = np.vstack(q0_samples)
 
-    r_rand = np.random.rand(mdg.num_subdomain_ridges())
-
-    loss = sampler.compute_loss(mu_samples[0, :], q0_samples[0, :], r_rand)
-    print(loss)
-    print(mu_samples)
-    sampler.visualize(mu_samples[0, :], q0_samples[0, :], "sol")
+    return sampler, mu_samples, q0_samples
+    #r_rand = np.random.rand(mdg.num_subdomain_ridges())
+    #loss = sampler.compute_loss(mu_samples[0, :], q0_samples[0, :], r_rand)
+    #print(loss)
+    #print(mu_samples)
+    #sampler.visualize(mu_samples[0, :], q0_samples[0, :], "sol")
 
 
 def main_sampler_SB(mdg, keyword, num_samples):
@@ -81,12 +82,17 @@ def main_sampler_SB(mdg, keyword, num_samples):
 
 
 if __name__ == "__main__":
-    mdg = pg.unit_grid(2, 0.125)
+    stepsize = float(input("Mesh stepsize: "))
+    num_samples = int(input("Number of samples: "))
+    mdg = pg.unit_grid(2, stepsize)
     mdg.compute_geometry()
 
     create_data(mdg)
 
     keyword = "flow"
-    num_samples = 4
 
-    main_sampler_SB(mdg, keyword, num_samples)
+    sq, mu, q0 = main_sampler_q(mdg, keyword, num_samples)
+    sr, mu, r = main_sampler_r(mdg, keyword, num_samples)
+
+    np.savez("snapshots.npz", curl = sr.hs.curl_op.todense(), face_mass = sq.face_mass.todense(), cell_mass = sq.cell_mass.todense(), mu = mu, q0 = q0, r = r, h = stepsize)
+    print("Done.")
