@@ -17,7 +17,9 @@ class SamplerSB(Sampler):
         self.l_bounds = [0, 0]
         self.u_bounds = [4, 4]
 
-    def get_f(self, mu):
+    def get_f(self, **kwargs):
+        mu = kwargs["mu"]
+
         def source(x):
             return np.sin(2 * np.pi * mu[0] * x[0]) * np.sin(2 * np.pi * mu[1] * x[1])
 
@@ -26,7 +28,7 @@ class SamplerSB(Sampler):
         )
         return f
 
-    def get_g(self):
+    def get_g(self, **kwargs):
         return np.zeros(self.mdg.num_subdomain_faces())
 
 
