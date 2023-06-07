@@ -25,20 +25,20 @@ class SweepSolver:
         return SB
 
     def solve(self, f, g):
-        q_f = self.compute_q_f(f)
-        q_0 = self.compute_q_0(q_f, g)
-        return self.compute_qp(q_f, q_0, g)
+        q_par = self.compute_q_par(f)
+        q_hom = self.compute_q_hom(q_par, g)
+        return self.compute_qp(q_par, q_hom, g)
 
-    def compute_q_f(self, f):
+    def compute_q_par(self, f):
         return self.swp.sweep(f)
 
-    def compute_q_0(self, q_f, g):
+    def compute_q_hom(self, q_par, g):
         S_0 = sps.eye(*self.SB.shape, format="csc") - self.SB
 
         A = S_0.T @ self.face_mass @ S_0
         A += self.SB.T @ self.face_mass @ self.SB
 
-        rhs = S_0.T @ (g - self.face_mass @ q_f)
+        rhs = S_0.T @ (g - self.face_mass @ q_par)
 
         print("Swept problem is", A.shape, "with", A.nnz, "nonzeros")
 
@@ -46,8 +46,8 @@ class SweepSolver:
 
         return S_0 @ ls.solve()
 
-    def compute_qp(self, q_f, q_0, g):
-        q = q_f + q_0
+    def compute_qp(self, q_par, q_hom, g):
+        q = q_par + q_hom
         p = self.swp.sweep_transpose(self.face_mass @ q - g)
 
         return q, p
