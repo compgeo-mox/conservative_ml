@@ -39,6 +39,7 @@ def direct_solve(mdg, discr, f, g):
 
     spp = sps.bmat([[A, -B.T], [B, None]], format="csc")
     rhs = np.hstack((g, f))
+    print("Full  problem is", spp.shape, "with", spp.nnz, "nonzeros")
 
     qp = sps.linalg.spsolve(spp, rhs)
 

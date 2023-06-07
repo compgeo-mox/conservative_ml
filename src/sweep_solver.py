@@ -32,6 +32,11 @@ class SweepSolver:
 
         rhs = S_0.T @ (g - self.face_mass @ q_f)
 
+        A.data[np.abs(A.data) < 1e-10] = 0
+        A.eliminate_zeros()
+
+        print("Swept problem is", A.shape, "with", A.nnz, "nonzeros")
+
         ls = pg.LinearSystem(A, rhs)
 
         return S_0 @ ls.solve()
