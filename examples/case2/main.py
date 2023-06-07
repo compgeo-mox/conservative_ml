@@ -50,7 +50,7 @@ class SamplerSB(Sampler):
                 )
                 data[pp.PARAMETERS][self.keyword]["second_order_tensor"] = perm
 
-        for _, data in mdg.interfaces(return_data=True):
+        for _, data in self.mdg.interfaces(return_data=True):
             aperture = data[pp.PARAMETERS][self.keyword]["aperture"]
             kn = K / (aperture / 2)
             data[pp.PARAMETERS][self.keyword]["normal_diffusivity"] = kn
@@ -103,10 +103,10 @@ def main(mdg, keyword, num_samples, seed=1):
 
 if __name__ == "__main__":
     # step_size = float(input("Mesh stepsize: "))
-    # num_samples = int(input("Number of samples: "))
+    num_samples = int(input("Number of samples: "))
 
     step_size = 0.1
-    num_samples = 10
+    #num_samples = 10
 
     mesh_kwargs = {"mesh_size_frac": step_size, "mesh_size_min": step_size / 10}
     mdg, _ = pp.md_grids_2d.seven_fractures_one_L_intersection(mesh_kwargs)

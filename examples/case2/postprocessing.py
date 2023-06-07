@@ -1,5 +1,6 @@
 import numpy as np
 import pygeon as pg
+import porepy as pp
 
 from main import SamplerSB
 from setup import create_data
@@ -15,6 +16,7 @@ if __name__ == "__main__":
     pg.convert_from_pp(mdg)
     mdg.compute_geometry()
 
-    create_data(mdg)
+    keyword = "flow"
+    create_data(mdg, keyword)
     sampler = SamplerSB(mdg, keyword="flow")
     sampler.visualize(mu, q0, "sol")
