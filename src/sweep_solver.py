@@ -11,10 +11,18 @@ class SweepSolver:
         self.discr = discr
 
         self.face_mass = pg.face_mass(self.mdg, discr=self.discr)
-        self.div = pg.cell_mass(mdg) @ pg.div(mdg, discr=discr)
 
         self.swp = pg.Sweeper(mdg)
-        self.SB = self.swp.sweep(self.div)
+        self.SB = self.sweep_the_div()
+
+    def sweep_the_div(self, tol=1e-10):
+        div = pg.cell_mass(self.mdg) @ pg.div(self.mdg, discr=self.discr)
+        SB = self.swp.sweep(div)
+
+        SB.data[np.abs(SB.data) < tol] = 0
+        SB.eliminate_zeros()
+
+        return SB
 
     def solve(self, f, g):
         q_f = self.compute_q_f(f)
@@ -25,15 +33,12 @@ class SweepSolver:
         return self.swp.sweep(f)
 
     def compute_q_0(self, q_f, g):
-        S_0 = sps.eye(*self.SB.shape) - self.SB
+        S_0 = sps.eye(*self.SB.shape, format="csc") - self.SB
 
         A = S_0.T @ self.face_mass @ S_0
         A += self.SB.T @ self.face_mass @ self.SB
 
         rhs = S_0.T @ (g - self.face_mass @ q_f)
-
-        A.data[np.abs(A.data) < 1e-10] = 0
-        A.eliminate_zeros()
 
         print("Swept problem is", A.shape, "with", A.nnz, "nonzeros")
 
