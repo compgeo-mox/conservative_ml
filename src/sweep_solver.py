@@ -51,3 +51,22 @@ class SweepSolver:
         p = self.swp.sweep_transpose(self.face_mass @ q - g)
 
         return q, p
+
+
+class KrylovSweepSolver(SweepSolver):
+    def __init__(self, mdg: pg.MixedDimensionalGrid, discr, tol):
+        super().__init__(mdg, discr)
+        self.tol = tol
+
+    def compute_q_hom(self, q_par, g):
+        S_0 = sps.eye(*self.SB.shape, format="csc") - self.SB
+
+        A = S_0.T @ self.face_mass @ S_0
+
+        rhs = S_0.T @ (g - self.face_mass @ q_par)
+        ls = pg.LinearSystem(A, rhs)
+
+        return S_0 @ ls.solve(solver=self.cg)
+
+    def cg(self, A, b):
+        return sps.linalg.cg(A, b, tol=self.tol)[0]
