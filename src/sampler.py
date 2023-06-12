@@ -42,7 +42,7 @@ class Sampler:
         mu_samples = qmc.scale(mu_samples, self.l_bounds, self.u_bounds)
 
         for mu in mu_samples:
-            yield mu, self.get_q0(mu)
+            yield mu, self.get_q0(mu), self.S_I(self.get_f(mu=mu))
 
     def compute_loss_r(self, q0_true, r):
         diff = q0_true - self.S_0(r)

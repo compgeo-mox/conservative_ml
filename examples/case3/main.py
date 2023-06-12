@@ -9,6 +9,7 @@ import sys
 sys.path.insert(0, "src/")
 from sampler import Sampler
 from setup import create_data
+from generator import generate_samples
 
 
 class SamplerSB(Sampler):
@@ -74,43 +75,31 @@ class SamplerSB(Sampler):
 
         return pg.face_mass(self.mdg, keyword=self.keyword)
 
+    def compute_qp(self, mu, q0):
+        f = self.get_f(mu=mu)
+        g = self.get_g(mu=mu)
+        q_f = self.swp.sweep(f)
 
-def main(mdg, keyword, num_samples, seed=1):
-    sampler = SamplerSB(mdg, keyword)
+        q = q_f + q0
 
-    q0_samples = np.empty(num_samples, dtype=np.ndarray)
-    mu_samples = np.empty((num_samples, sampler.num_param))
-    for idx, (mu, q0) in enumerate(sampler.generate_set(num_samples, seed=seed)):
-        mu_samples[idx, :] = mu
-        q0_samples[idx] = q0
+        self.set_perm(mu)
+        face_mass = self.assemble_face_mass(q, mu)
+        p = self.swp.sweep_transpose(face_mass @ q - g)
 
-    q0_samples = np.vstack(q0_samples)
-
-    S_0 = sampler.S_0(sps.eye(q0_samples.shape[1]))
-
-    return sampler, mu_samples, q0_samples, pg.curl(mdg), S_0
+        return q, p
 
 
 if __name__ == "__main__":
     step_size = float(input("Mesh stepsize: "))  # 0.1
     num_samples = int(input("Number of samples: "))  # 10
+
     mdg = pg.unit_grid(2, step_size)
     mdg.compute_geometry()
 
-    create_data(mdg)
-
     keyword = "flow"
+    create_data(mdg, keyword)
 
-    sampler, mu, q0, curl, S_0 = main(mdg, keyword, num_samples)
+    sampler = SamplerSB(mdg, keyword)
+    generate_samples(sampler, num_samples, step_size, "snapshots.npz")
 
-    np.savez(
-        "snapshots.npz",
-        curl=curl.todense(),
-        S_0=S_0.todense(),
-        face_mass=sampler.face_mass.todense(),
-        cell_mass=sampler.cell_mass.todense(),
-        mu=mu,
-        q0=q0,
-        h=step_size,
-    )
     print("Done.")

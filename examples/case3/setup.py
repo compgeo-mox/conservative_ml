@@ -3,7 +3,7 @@ import porepy as pp
 import pygeon as pg
 
 
-def create_data(mdg):
+def create_data(mdg, keyword):
     for sd, data in mdg.subdomains(return_data=True):
         # Set up parameters
         perm = pp.SecondOrderTensor(np.ones(sd.num_cells))
@@ -20,4 +20,4 @@ def create_data(mdg):
             "bc_values": bc_val,
             "source": f,
         }
-        pp.initialize_default_data(sd, data, "flow", parameters)
+        pp.initialize_default_data(sd, data, keyword, parameters)
