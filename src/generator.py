@@ -1,14 +1,20 @@
+import time
 import numpy as np
 import scipy.sparse as sps
 
 import pygeon as pg
 
 
-def generate_samples(sampler, num_samples, step_size, file_name=None, seed=1):
+def generate_samples(sampler, num_samples, step_size, file_name=None, seed=None):
     q0_samples = np.empty(num_samples, dtype=np.ndarray)
     qf_samples = np.empty(num_samples, dtype=np.ndarray)
     mu_samples = np.empty((num_samples, sampler.num_param))
+
+    start = time.time()
     for idx, (mu, q0, qf) in enumerate(sampler.generate_set(num_samples, seed=seed)):
+        print("time to generate a sample", time.time() - start)
+        start = time.time()
+
         mu_samples[idx, :] = mu
         q0_samples[idx] = q0
         qf_samples[idx] = qf

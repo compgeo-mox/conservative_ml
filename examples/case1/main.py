@@ -37,6 +37,7 @@ class SamplerSB(Sampler):
 if __name__ == "__main__":
     step_size = float(input("Mesh stepsize: "))
     num_samples = int(input("Number of samples: "))
+    seed = 0  # seed for sampling
 
     mdg = pg.unit_grid(2, step_size)
     mdg.compute_geometry()
@@ -45,6 +46,6 @@ if __name__ == "__main__":
     create_data(mdg, keyword)
 
     sampler = SamplerSB(mdg, keyword)
-    generate_samples(sampler, num_samples, step_size, "snapshots.npz")
+    generate_samples(sampler, num_samples, step_size, "snapshots.npz", seed)
 
     print("Done.")
