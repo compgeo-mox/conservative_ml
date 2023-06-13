@@ -13,18 +13,19 @@ from generator import generate_samples
 
 
 class SamplerSB(Sampler):
-    def __init__(self, mdg, keyword):
+    def __init__(self, mdg, keyword, tol=1e-8, max_iter=100):
         super().__init__(mdg, keyword)
 
-        self.l_bounds = [-1, -1, 1e-2, 1e-2]
-        self.u_bounds = [1, 1, 1, 1]
+        self.l_bounds = [-1, -1, -2, 0]
+        self.u_bounds = [1, 1, 2, 2]
+
         self.num_param = len(self.l_bounds)
 
         discr = pg.RT0(self.keyword)
         self.eval_at_cell_centers = pg.eval_at_cell_centers(self.mdg, discr=discr)
 
-        self.max_iter = 100
-        self.tol = 1e-8
+        self.max_iter = max_iter
+        self.tol = tol
 
     def get_f(self, **kwargs):
         mu = kwargs["mu"]
@@ -67,10 +68,12 @@ class SamplerSB(Sampler):
         return q - self.S_I(self.B @ q)
 
     def assemble_face_mass(self, q, mu):
+        k0 = 10 ** mu[2]
+        k1 = 10 ** mu[3]
         for _, data in self.mdg.subdomains(return_data=True):
             q_interp = (self.eval_at_cell_centers @ q).reshape((3, -1), order="F")
             q_norm = np.linalg.norm(q_interp, axis=0)
-            perm = pp.SecondOrderTensor(1 / (1 / mu[2] + q_norm / mu[3]))
+            perm = pp.SecondOrderTensor(1 / (1 / k0 + q_norm / k1))
             data[pp.PARAMETERS][self.keyword]["second_order_tensor"] = perm
 
         return pg.face_mass(self.mdg, keyword=self.keyword)
@@ -100,6 +103,11 @@ if __name__ == "__main__":
     keyword = "flow"
     create_data(mdg, keyword)
 
+    # non-linear loop data
+    tol = 1e-8
+    max_iter = 100
+
+    sampler = SamplerSB(mdg, keyword, tol, max_iter)
     generate_samples(sampler, num_samples, step_size, "snapshots.npz", seed)
 
     print("Done.")
