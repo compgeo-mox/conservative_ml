@@ -8,7 +8,7 @@ import sys
 
 sys.path.insert(0, "src/")
 from sampler import Sampler
-from setup import create_data
+from setup import create_data, fracture_grid
 from generator import generate_samples
 
 
@@ -17,20 +17,31 @@ class SamplerSB(Sampler):
         super().__init__(mdg, keyword)
 
         # mu[0] log of fracture permeability
-        # mu[1:3] alpha for bc
+        # mu[1:4] alpha for bc
+        # mu[4] f in the fractures
 
-        self.l_bounds = [-4, 0, 0]
-        self.u_bounds = [4, 1, 1]
+        self.l_bounds = [-4, 0, 0, 0, 0]
+        self.u_bounds = [4, 1, 1, 1, 1]
 
         self.num_param = len(self.l_bounds)
 
     def get_f(self, **kwargs):
-        return np.zeros(self.mdg.num_subdomain_cells())
+        mu = kwargs.get("mu", None)
+
+        f = []
+        for sd, data in self.mdg.subdomains(return_data=True):
+            if sd.dim < self.mdg.dim_max():
+                specific_volumes = data[pp.PARAMETERS][self.keyword]["specific_volumes"]
+                f.append(mu[4] * specific_volumes * np.ones(sd.num_cells))
+            else:
+                f.append(np.zeros(sd.num_cells))
+
+        return np.hstack(f)
 
     def get_g(self, **kwargs):
         mu = kwargs.get("mu", None)
 
-        p_bc = lambda x: np.dot(x[:2], mu[1:3])
+        p_bc = lambda x: np.dot(x, mu[1:4])
         RT0 = pg.RT0("bc_val")
 
         bc_val = []
@@ -56,7 +67,7 @@ class SamplerSB(Sampler):
             data[pp.PARAMETERS][self.keyword]["normal_diffusivity"] = kn
 
     def get_q0(self, mu):
-        f = self.get_f()
+        f = self.get_f(mu=mu)
         g = self.get_g(mu=mu)
 
         self.set_perm(mu)
@@ -86,18 +97,18 @@ class SamplerSB(Sampler):
 
 
 if __name__ == "__main__":
-    step_size = float(input("Mesh stepsize: "))
     num_samples = int(input("Number of samples: "))
+    step_size = 0.1  # adequate step size
+    seed = 0  # seed for sampling
 
-    mesh_kwargs = {"mesh_size_frac": step_size, "mesh_size_min": step_size / 10}
-    mdg, _ = pp.md_grids_2d.seven_fractures_one_L_intersection(mesh_kwargs)
-    pg.convert_from_pp(mdg)
+    mesh_kwargs = {"mesh_size_frac": step_size, "mesh_size_min": step_size}
+    mdg = fracture_grid(mesh_kwargs)
     mdg.compute_geometry()
 
     keyword = "flow"
     create_data(mdg, keyword)
 
     sampler = SamplerSB(mdg, keyword)
-    generate_samples(sampler, num_samples, step_size, "snapshots.npz")
+    generate_samples(sampler, num_samples, step_size, "snapshots.npz", seed)
 
     print("Done.")
