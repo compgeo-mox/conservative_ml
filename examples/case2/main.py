@@ -20,8 +20,8 @@ class SamplerSB(Sampler):
         # mu[1:4] alpha for bc
         # mu[4] f in the fractures
 
-        self.l_bounds = [-4, 0, 0, 0, 0]
-        self.u_bounds = [4, 1, 1, 1, 1]
+        self.l_bounds = [-4, 0, 0, 0, 1]
+        self.u_bounds = [4, 1, 1, 1, 2]
 
         self.num_param = len(self.l_bounds)
 
@@ -98,7 +98,7 @@ class SamplerSB(Sampler):
 
 if __name__ == "__main__":
     num_samples = int(input("Number of samples: "))
-    step_size = 0.1  # adequate step size
+    step_size = 0.1
     seed = 0  # seed for sampling
 
     mesh_kwargs = {"mesh_size_frac": step_size, "mesh_size_min": step_size}

@@ -16,7 +16,12 @@ class SamplerSB(Sampler):
     def __init__(self, mdg, keyword, tol=1e-8, max_iter=100):
         super().__init__(mdg, keyword)
 
-        self.l_bounds = [-1, -1, -2, 0]
+        # mu[0] coefficient for the source
+        # mu[1] coeff for pressure bc
+        # mu[2] log of perm
+        # mu[3] log of Forch coeff
+
+        self.l_bounds = [0, 0, -2, 0]
         self.u_bounds = [1, 1, 2, 2]
 
         self.num_param = len(self.l_bounds)
@@ -31,7 +36,9 @@ class SamplerSB(Sampler):
         mu = kwargs["mu"]
 
         def source(x):
-            return mu[0] * np.sin(2 * np.pi * x[0]) + mu[1] * np.sin(2 * np.pi * x[1])
+            return mu[0] * np.sin(2 * np.pi * x[0]) + (1 - mu[0]) * np.sin(
+                2 * np.pi * x[1]
+            )
 
         f = self.cell_mass @ pg.PwConstants(self.keyword).interpolate(
             self.mdg.subdomains()[0], source
@@ -39,7 +46,17 @@ class SamplerSB(Sampler):
         return f
 
     def get_g(self, **kwargs):
-        return np.zeros(self.mdg.num_subdomain_faces())
+        mu = kwargs.get("mu", None)
+
+        p_bc = lambda x: mu[1] * x[0] * x[1]
+        RT0 = pg.RT0("bc_val")
+
+        bc_val = []
+        for sd in self.mdg.subdomains():
+            b_faces = sd.tags["domain_boundary_faces"]
+            bc_val.append(-RT0.assemble_nat_bc(sd, p_bc, b_faces))
+
+        return np.hstack(bc_val)
 
     def get_q0(self, mu):
         f = self.get_f(mu=mu)
@@ -73,7 +90,7 @@ class SamplerSB(Sampler):
         for _, data in self.mdg.subdomains(return_data=True):
             q_interp = (self.eval_at_cell_centers @ q).reshape((3, -1), order="F")
             q_norm = np.linalg.norm(q_interp, axis=0)
-            perm = pp.SecondOrderTensor(1 / (1 / k0 + q_norm / k1))
+            perm = pp.SecondOrderTensor(k0 / (1 + q_norm / k1))
             data[pp.PARAMETERS][self.keyword]["second_order_tensor"] = perm
 
         return pg.face_mass(self.mdg, keyword=self.keyword)
@@ -93,8 +110,8 @@ class SamplerSB(Sampler):
 
 
 if __name__ == "__main__":
-    step_size = float(input("Mesh stepsize: "))  # 0.1
     num_samples = int(input("Number of samples: "))  # 10
+    step_size = 1 / 32
     seed = 0  # seed for sampling
 
     mdg = pg.unit_grid(2, step_size)

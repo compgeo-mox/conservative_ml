@@ -23,7 +23,9 @@ class SamplerSB(Sampler):
         mu = kwargs["mu"]
 
         def source(x):
-            return np.sin(2 * np.pi * mu[0] * x[0]) * np.sin(2 * np.pi * mu[1] * x[1])
+            return (
+                np.sin(2 * np.pi * mu[0] * x[0]) * np.sin(2 * np.pi * mu[1] * x[1]) + 1
+            )
 
         f = self.cell_mass @ pg.PwConstants(self.keyword).interpolate(
             self.mdg.subdomains()[0], source
@@ -35,8 +37,8 @@ class SamplerSB(Sampler):
 
 
 if __name__ == "__main__":
-    step_size = float(input("Mesh stepsize: "))
     num_samples = int(input("Number of samples: "))
+    step_size = 1 / 32
     seed = 0  # seed for sampling
 
     mdg = pg.unit_grid(2, step_size)
