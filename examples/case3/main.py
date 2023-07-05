@@ -98,13 +98,13 @@ class SamplerSB(Sampler):
     def compute_qp(self, mu, q0):
         f = self.get_f(mu=mu)
         g = self.get_g(mu=mu)
-        q_f = self.swp.sweep(f)
+        q_f = self.sptr.sweep(f)
 
         q = q_f + q0
 
         self.set_perm(mu)
         face_mass = self.assemble_face_mass(q, mu)
-        p = self.swp.sweep_transpose(face_mass @ q - g)
+        p = self.sptr.sweep_transpose(face_mass @ q - g)
 
         return q, p
 

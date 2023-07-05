@@ -14,13 +14,13 @@ class Sampler:
         self.cell_mass = pg.cell_mass(self.mdg, keyword="unit")
         self.face_mass = pg.face_mass(self.mdg, keyword="unit")
 
-        self.swp = pg.Sweeper(mdg)
+        self.sptr = pg.SpanningTree(mdg)
 
         self.B = self.cell_mass @ pg.div(mdg)
         self.spp = sps.bmat([[self.face_mass, -self.B.T], [self.B, None]]).tocsc()
 
     def S_I(self, f):
-        return self.swp.sweep(f)
+        return self.sptr.solve(f)
 
     def S_0(self, r):
         return r - self.S_I(self.B @ r)
@@ -51,9 +51,9 @@ class Sampler:
     def compute_loss_p(self, mu, q0_true, r):
         f = self.get_f(mu=mu)
 
-        q_f = self.swp.sweep(f)
-        p_true = self.swp.sweep_transpose(self.face_mass @ (q_f + q0_true))
-        p = self.swp.sweep_transpose(self.face_mass @ (q_f + self.S_0(r)))
+        q_f = self.sptr.sweep(f)
+        p_true = self.sptr.sweep_transpose(self.face_mass @ (q_f + q0_true))
+        p = self.sptr.sweep_transpose(self.face_mass @ (q_f + self.S_0(r)))
 
         diff = p_true - p
 
@@ -68,10 +68,10 @@ class Sampler:
     def compute_qp(self, mu, q0):
         f = self.get_f(mu=mu)
         g = self.get_g(mu=mu)
-        q_f = self.swp.sweep(f)
+        q_f = self.sptr.sweep(f)
 
         q = q_f + q0
-        p = self.swp.sweep_transpose(self.face_mass @ q - g)
+        p = self.sptr.sweep_transpose(self.face_mass @ q - g)
 
         return q, p
 
