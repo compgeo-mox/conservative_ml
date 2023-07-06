@@ -51,9 +51,9 @@ class Sampler:
     def compute_loss_p(self, mu, q0_true, r):
         f = self.get_f(mu=mu)
 
-        q_f = self.sptr.sweep(f)
-        p_true = self.sptr.sweep_transpose(self.face_mass @ (q_f + q0_true))
-        p = self.sptr.sweep_transpose(self.face_mass @ (q_f + self.S_0(r)))
+        q_f = self.sptr.solve(f)
+        p_true = self.sptr.solve_transpose(self.face_mass @ (q_f + q0_true))
+        p = self.sptr.solve_transpose(self.face_mass @ (q_f + self.S_0(r)))
 
         diff = p_true - p
 
@@ -68,14 +68,14 @@ class Sampler:
     def compute_qp(self, mu, q0):
         f = self.get_f(mu=mu)
         g = self.get_g(mu=mu)
-        q_f = self.sptr.sweep(f)
+        q_f = self.sptr.solve(f)
 
         q = q_f + q0
-        p = self.sptr.sweep_transpose(self.face_mass @ q - g)
+        p = self.sptr.solve_transpose(self.face_mass @ q - g)
 
         return q, p
 
-    def visualize(self, mu, q0, file_name):
+    def visualize(self, mu, q0, file_name, file_name_sptr=None):
         # visualization of the results
         q, p = self.compute_qp(mu, q0)
 
@@ -100,3 +100,6 @@ class Sampler:
         # export the solutions
         save = pp.Exporter(self.mdg, file_name)
         save.write_vtu(["cell_q", "cell_p"])
+
+        if file_name_sptr is not None:
+            self.sptr.visualize_2d(self.mdg, file_name_sptr)
