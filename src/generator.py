@@ -25,11 +25,11 @@ def generate_samples(sampler, num_samples, step_size, file_name=None, seed=None)
         curl_op = pg.curl(sampler.mdg)
         np.savez(
             file_name,
-            curl=curl_op.todense(),
-            div=div_op.todense(),
-            S_0=S_0.todense(),
-            face_mass=sampler.face_mass.todense(),
-            cell_mass=sampler.cell_mass.todense(),
+            curl=curl_op.tocoo(),
+            div=div_op.tocoo(),
+            S_0=S_0.tocoo(),
+            face_mass=sampler.face_mass.tocoo(),
+            cell_mass=sampler.cell_mass.tocoo(),
             mu=mu_samples,
             q0=q0_samples,
             qf=qf_samples,
