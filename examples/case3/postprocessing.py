@@ -1,9 +1,9 @@
 import numpy as np
 import pygeon as pg
 
+
 from main import SamplerSB
 from setup import create_data
-
 
 if __name__ == "__main__":
     filename = "snapshots.npz"  # input("Filename: ")
@@ -20,5 +20,5 @@ if __name__ == "__main__":
 
     # pos = 0 is used in the paper
     pos = 0
-    print(mu[0])
+    print(mu[pos])
     sampler.visualize(mu[pos], q0[pos], "sol")
