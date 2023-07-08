@@ -1,15 +1,17 @@
 import numpy as np
 import pygeon as pg
+import sys
+import os
 
 from main import SamplerSB
 from setup import create_data
 
 
 if __name__ == "__main__":
-    filename = "snapshots.npz"  # input("Filename: ")
+    filename =  "ROMoutputs_case1.npz"
     obj = np.load(filename)
     mu, q0, step_size = obj["mu"], obj["q0"], obj["h"]
-
+    mu, q0 = np.atleast_2d(mu), np.atleast_2d(q0)
     mdg = pg.unit_grid(2, step_size)
     mdg.compute_geometry()
 
@@ -19,6 +21,11 @@ if __name__ == "__main__":
     sampler = SamplerSB(mdg, keyword)
 
     # pos = 0 is used in the paper
-    pos = 0
-    print(mu[0])
+    pos = int(sys.argv[1])
+    aux = ("%.3f, "*len(mu[pos]))[:-2] % tuple(mu[pos])
+    print("Parameter values: [%s]" % aux)
     sampler.visualize(mu[pos], q0[pos], "sol")
+    print("Opening in Paraview...\n")
+    os.system("sol_2.vtu")
+    print("... done.")
+    
