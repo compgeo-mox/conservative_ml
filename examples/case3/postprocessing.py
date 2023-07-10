@@ -2,7 +2,7 @@ import numpy as np
 import pygeon as pg
 import sys
 import os
-
+import platform
 
 from main import SamplerSB
 from setup import create_data
@@ -26,6 +26,9 @@ if __name__ == "__main__":
     aux = ("%.3f, "*len(mu[pos]))[:-2] % tuple(mu[pos])
     print("Parameter values: [%s]" % aux)
     sampler.visualize(mu[pos], q0[pos], "sol")
-    print("Opening in Paraview...\n")
-    os.system("sol_2.vtu")
-    print("... done.")
+    print("Opening in Paraview...")
+    if(platform.system()=="Windows"):
+        os.system("start /B sol_2.vtu")
+    else:
+        os.system("xdg-open sol_2.vtu &")
+    print("... done.\n")
