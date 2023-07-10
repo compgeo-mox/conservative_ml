@@ -12,12 +12,12 @@ class SweepSolver:
 
         self.face_mass = pg.face_mass(self.mdg, discr=self.discr)
 
-        self.swp = pg.Sweeper(mdg)
+        self.swp = pg.SpanningTree(mdg)
         self.SB = self.sweep_the_div()
 
     def sweep_the_div(self, tol=1e-10):
         div = pg.cell_mass(self.mdg) @ pg.div(self.mdg, discr=self.discr)
-        SB = self.swp.sweep(div)
+        SB = self.swp.solve(div)
 
         SB.data[np.abs(SB.data) < tol] = 0
         SB.eliminate_zeros()
@@ -30,7 +30,7 @@ class SweepSolver:
         return self.compute_qp(q_par, q_hom, g)
 
     def compute_q_par(self, f):
-        return self.swp.sweep(f)
+        return self.swp.solve(f)
 
     def compute_q_hom(self, q_par, g):
         S_0 = sps.eye(*self.SB.shape, format="csc") - self.SB
@@ -48,7 +48,7 @@ class SweepSolver:
 
     def compute_qp(self, q_par, q_hom, g):
         q = q_par + q_hom
-        p = self.swp.sweep_transpose(self.face_mass @ q - g)
+        p = self.swp.solve_transpose(self.face_mass @ q - g)
 
         return q, p
 
