@@ -23,6 +23,7 @@ def generate_samples(sampler, num_samples, step_size, file_name=None, seed=None)
     if file_name is not None:
         div_op = pg.div(sampler.mdg)
         curl_op = pg.curl(sampler.mdg)
+        Q_coords, R_coords = get_coords(sampler.mdg)
         np.savez(
             file_name,
             curl=curl_op.tocoo(),
@@ -34,4 +35,24 @@ def generate_samples(sampler, num_samples, step_size, file_name=None, seed=None)
             q0=q0_samples,
             qf=qf_samples,
             h=step_size,
+            Q_coords=Q_coords,
+            R_coords=R_coords,
         )
+
+
+def get_coords(mdg):
+    Q_coords = []
+    R_coords = []
+
+    for sd in mdg.subdomains():
+        Q_coords.append(sd.face_centers)
+
+        if sd.dim == 3:
+            R_coords.append(sd.nodes @ np.abs(sd.ridge_peaks) / 2)
+        elif sd.dim == 2:
+            R_coords.append(sd.nodes)
+
+    Q_coords = np.hstack(Q_coords).T
+    R_coords = np.hstack(R_coords).T
+
+    return Q_coords, R_coords
