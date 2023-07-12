@@ -14,7 +14,7 @@ class SamplerSB(Sampler):
     def __init__(self, mdg, keyword):
         super().__init__(mdg, keyword)
 
-        self.l_bounds = [1, 1]
+        self.l_bounds = [0, 0]
         self.u_bounds = [4, 4]
 
         self.num_param = len(self.l_bounds)
@@ -31,12 +31,15 @@ class SamplerSB(Sampler):
         return f
 
     def get_g(self, **kwargs):
-        return np.zeros(self.mdg.num_subdomain_faces())
+
+        vector_source_fct = lambda x: np.array([1.0, 0.0, 0.0])
+        g = self.face_mass @ pg.RT0(self.keyword).interpolate(self.mdg.subdomains()[0], vector_source_fct)
+        return g
 
 
 if __name__ == "__main__":
     num_samples = int(input("Number of samples: "))
-    step_size = 1 / 32
+    step_size = 0.05
     seed = 0  # seed for sampling
 
     mdg = pg.unit_grid(2, step_size)
