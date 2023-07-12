@@ -14,7 +14,7 @@ class SamplerSB(Sampler):
     def __init__(self, mdg, keyword):
         super().__init__(mdg, keyword)
 
-        self.l_bounds = [0, 0]
+        self.l_bounds = [1, 1]
         self.u_bounds = [4, 4]
 
         self.num_param = len(self.l_bounds)
@@ -23,9 +23,7 @@ class SamplerSB(Sampler):
         mu = kwargs["mu"]
 
         def source(x):
-            return (
-                np.sin(2 * np.pi * mu[0] * x[0]) * np.sin(2 * np.pi * mu[1] * x[1]) + 1
-            )
+            return np.sin(2 * np.pi * mu[0] * x[0]) * np.sin(2 * np.pi * mu[1] * x[1])
 
         f = self.cell_mass @ pg.PwConstants(self.keyword).interpolate(
             self.mdg.subdomains()[0], source

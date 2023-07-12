@@ -18,7 +18,9 @@ def generate_samples(sampler, num_samples, step_size, file_name=None, seed=None)
     q0_samples = np.vstack(q0_samples)
     qf_samples = np.vstack(qf_samples)
 
-    S_0 = sampler.S_0(sps.eye(q0_samples.shape[1]))
+    identity = sps.eye(q0_samples.shape[1])
+    S_0 = sampler.S_0(identity)
+    S_I_transpose = sampler.sptr.solve_transpose(identity)
 
     if file_name is not None:
         div_op = pg.div(sampler.mdg)
@@ -29,6 +31,7 @@ def generate_samples(sampler, num_samples, step_size, file_name=None, seed=None)
             curl=curl_op.tocoo(),
             div=div_op.tocoo(),
             S_0=S_0.tocoo(),
+            S_I_transpose=S_I_transpose.tocoo(),
             face_mass=sampler.face_mass.tocoo(),
             cell_mass=sampler.cell_mass.tocoo(),
             mu=mu_samples,
