@@ -8,9 +8,13 @@ from main import SamplerSB
 from setup import create_data
 
 if __name__ == "__main__":
+    # pos = which solution to plot, among the given list (should be a nonnegative integer)
+    # model = where the output comes from, should be one of "FOM", "PODNN", "BLACKBOX", "curl-DLROM", "st-DLROM"
+    pos, model = int(sys.argv[1]), sys.argv[2]
+
     filename =  "ROMoutputs_case3.npz"
     obj = np.load(filename)
-    mu, q0, step_size = obj["mu"], obj["q0"], obj["h"]
+    mu, q0, step_size = obj["mu"], obj["q0_"+model], obj["h"]
     mu, q0 = np.atleast_2d(mu), np.atleast_2d(q0)
 
     mdg = pg.unit_grid(2, step_size)
