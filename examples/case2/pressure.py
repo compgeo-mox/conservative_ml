@@ -10,7 +10,7 @@ from setup import create_data
 
 if __name__ == "__main__":
 
-    filename =  "ROMoutputs_case1.npz"
+    filename =  "ROMoutputs_case2.npz"
     obj = np.load(filename)
     step_size = obj["h"]
     mesh_kwargs = {"mesh_size_frac": step_size, "mesh_size_min": step_size}
