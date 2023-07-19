@@ -31,9 +31,10 @@ class SamplerSB(Sampler):
         return f
 
     def get_g(self, **kwargs):
-
         vector_source_fct = lambda x: np.array([1.0, 0.0, 0.0])
-        g = self.face_mass @ pg.RT0(self.keyword).interpolate(self.mdg.subdomains()[0], vector_source_fct)
+        g = self.face_mass @ pg.RT0(self.keyword).interpolate(
+            self.mdg.subdomains()[0], vector_source_fct
+        )
         return g
 
 
