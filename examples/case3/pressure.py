@@ -10,7 +10,7 @@ from setup import create_data
 
 if __name__ == "__main__":
 
-    filename =  "ROMoutputs_case1.npz"
+    filename =  "ROMoutputs_case3.npz"
     obj = np.load(filename)
     step_size = obj["h"]
     mdg = pg.unit_grid(2, step_size)
