@@ -6,15 +6,44 @@ import porepy as pp
 import pygeon as pg
 
 
+class SpanningTrees:
+    def __init__(self, mdg, weights, starting_faces=None) -> None:
+        if starting_faces is None:
+            num = np.asarray(weights).size
+            starting_faces = self.find_starting_faces(mdg, num)
+
+        self.sptrs = [pg.SpanningTree(mdg, f) for f in starting_faces]
+        self.avg = lambda v: np.average(v, axis=0, weights=weights)
+
+    def solve(self, f) -> np.ndarray:
+        return self.avg([st.solve(f) for st in self.sptrs])
+
+    def solve_transpose(self, rhs) -> np.ndarray:
+        return self.avg([st.solve_transpose(rhs) for st in self.sptrs])
+
+    def find_starting_faces(self, mdg, num):
+        if isinstance(mdg, pp.Grid):
+            sd = mdg
+        elif isinstance(mdg, pp.MixedDimensionalGrid):
+            # Extract the top-dimensional grid
+            sd = mdg.subdomains()[0]
+            assert sd.dim == mdg.dim_max()
+        else:
+            raise TypeError
+
+        faces = np.where(sd.tags["domain_boundary_faces"])[0]
+        return faces[np.linspace(0, faces.size, num, endpoint=False, dtype=int)]
+
+
 class Sampler:
-    def __init__(self, mdg, keyword):
+    def __init__(self, mdg, keyword, num_trees=5):
         self.mdg = mdg
         self.keyword = keyword
 
         self.cell_mass = pg.cell_mass(self.mdg, keyword="unit")
         self.face_mass = pg.face_mass(self.mdg, keyword="unit")
 
-        self.sptr = pg.SpanningTree(mdg)
+        self.sptr = SpanningTrees(mdg, [1 / num_trees] * num_trees)
 
         self.B = self.cell_mass @ pg.div(mdg)
         self.spp = sps.bmat([[self.face_mass, -self.B.T], [self.B, None]]).tocsc()
