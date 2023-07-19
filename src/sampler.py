@@ -75,7 +75,7 @@ class Sampler:
 
         return q, p
 
-    def visualize(self, mu, q0, file_name, file_name_sptr=None):
+    def visualize(self, mu, q0, file_name, folder=None, file_name_sptr=None):
         # visualization of the results
         q, p = self.compute_qp(mu, q0)
 
@@ -98,7 +98,7 @@ class Sampler:
             pp.set_solution_values("cell_p", cell_p[dofs[idx] : dofs[idx + 1]], data, 0)
 
         # export the solutions
-        save = pp.Exporter(self.mdg, file_name)
+        save = pp.Exporter(self.mdg, file_name, folder_name=folder)
         save.write_vtu(["cell_q", "cell_p"])
 
         if file_name_sptr is not None:
