@@ -12,8 +12,8 @@ from setup import create_data, fracture_grid
 
 if __name__ == "__main__":
     # pos = which solution to plot, among the given list (should be a nonnegative integer)
-    # model = where the output comes from, should be one of "FOM", "PODNN", "BLACKBOX", "curl-DLROM", "st-DLROM"
-    fpos, model = int(sys.argv[1]), sys.argv[2]
+    # model = where the output comes from, should be one of "FOM", "PODNN", "BLACKBOX-L2", "BLACKBOX-H1", "curl-DLROM", "s0-DLROM" (not case sensitive)
+    pos, model = int(sys.argv[1]), sys.argv[2].lower().replace("-","_")
 
     filename =  "ROMoutputs_case2.npz"
     obj = np.load(filename)
